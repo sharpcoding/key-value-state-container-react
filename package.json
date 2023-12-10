@@ -1,0 +1,55 @@
+{
+  "name": "key-value-state-container-react",
+  "version": "1.0.0",
+  "date": "2023-Dec-10 10:10",
+  "description": "React bindings for key-value-state-container",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": [
+    "Redux",
+    "TypeScript",
+    "state-container"
+  ],
+  "scripts": {
+    "test": "jest",
+    "build": "tsc",
+    "pack": "npm run build && npm pack --pack-destination ~",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE.md",
+    "package.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WealthArc/key-value-state-container.git"
+  },
+  "author": "Tomasz Szatkowski, WealthArc",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/WealthArc/key-value-state-container/issues"
+  },
+  "homepage": "https://github.com/WealthArc/key-value-state-container#readme",
+  "dependencies": {
+    "key-value-state-container": "^1.0.0",
+    "lodash": "^4.17.4",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.2",
+    "@babel/plugin-transform-react-jsx": "^7.23.4",
+    "@babel/preset-env": "^7.23.2",
+    "@babel/preset-typescript": "^7.23.2",
+    "@testing-library/react": "^14.1.2",
+    "@types/jest": "^29.5.7",
+    "@types/lodash": "4.14.134",
+    "@types/react": "18.2.20",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6"
+  }
+}
