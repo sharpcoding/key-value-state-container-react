@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-import {  
+import {
   Action,
+  ClientNotificationCallbackArgs,
   getContainer,
+  getUniqueId,
   registerStateChangedCallback,
   TKnownStatePath,
   unregisterStateChangedCallback,
-  getUniqueId,
 } from "key-value-state-container";
 import { useGetContainerId } from "./use-get-container-id";
 import { RendersWithContainerId } from "./types/contracts";
 
-interface Args<TState extends Object> extends Partial<RendersWithContainerId> {
+interface Args<TState extends Object, TAction extends Action = Action>
+  extends Partial<RendersWithContainerId> {
+  callback?: (args: ClientNotificationCallbackArgs<TState, TAction>) => void;
   /**
    * Diagnostics flag that helps to identify problems
    * @default true
@@ -25,15 +28,40 @@ interface Args<TState extends Object> extends Partial<RendersWithContainerId> {
    */
   lateInvoke?: boolean;
   listenerTag?: string;
-  statePath: TKnownStatePath<TState>[];
+
+  statePath: TKnownStatePath<TState>[] | TKnownStatePath<TState>;
+
+  /**
+   * When `true`, selector code will be not active (will not register any callback)
+   * and always return the current container state (as it is), so the hook will no
+   * longer be a hook, but a simple function.
+   *
+   * Reason for introduction: it is not possible to have code that calls hooks
+   * conditionally, as this will violate rules of hooks, so this is a workaround.
+   * So, in other words, it is not possible to have something like this:
+   *
+   * ```
+   * if (hookNonNecessary) {
+   *   return;
+   * }
+   * const result = useHook();
+   * ```
+   * The purpose is to makes code more linear and easier to maintain.
+   */
+  switchOff?: boolean;
 }
 
-export const useSelector = <TState extends Object, TAction extends Action>({
+export const useSelector = <
+  TState extends Object,
+  TAction extends Action = Action
+>({
+  callback,
   containerId: containerIdFromProps,
   ignoreUnregistered,
-  lateInvoke,
+  lateInvoke: lateInvokeFromProps,
   listenerTag,
   statePath,
+  switchOff,
 }: Args<TState>) => {
   const listenerIdRef = useRef<string>(
     `${listenerTag ? `${listenerTag}:` : ""}${getUniqueId()}`
@@ -47,6 +75,8 @@ export const useSelector = <TState extends Object, TAction extends Action>({
       ignoreUnregistered:
         typeof ignoreUnregistered === "boolean" ? ignoreUnregistered : true,
     }) || {};
+  const lateInvoke =
+    typeof lateInvokeFromProps === "boolean" ? lateInvokeFromProps : true;
   const [currentState, setCurrentState] = useState(initialState);
   useEffect(() => {
     return () => {
@@ -54,15 +84,22 @@ export const useSelector = <TState extends Object, TAction extends Action>({
     };
   }, []);
   useEffect(() => {
+    if (switchOff) {
+      return;
+    }
+    const statePaths =
+      typeof statePath === "string"
+        ? [statePath]
+        : (statePath as TKnownStatePath<TState>[]);
     const statePathsLookup: Record<
       TKnownStatePath<TState>,
       true
-    > = statePath.reduce((acc, path) => {
+    > = statePaths.reduce((acc, path) => {
       acc[path] = true;
       return acc;
     }, {} as Record<TKnownStatePath<TState>, true>);
     registerStateChangedCallback<TState, TAction>({
-      callback: ({ changedPaths, newState }) => {
+      callback: ({ action, changedPaths, newState, oldState }) => {
         /**
          * Prevent receiving this React warning
          * "Can't perform a React state update on an unmounted component.
@@ -79,15 +116,22 @@ export const useSelector = <TState extends Object, TAction extends Action>({
         ) {
           setCurrentState(newState);
         }
+        if (callback) {
+          callback({ action, changedPaths, newState, oldState });
+        }
       },
-      lateInvoke: typeof lateInvoke === "boolean" ? lateInvoke : true,
-      listenerId: listenerIdRef.current,
       containerId,
+      lateInvoke,
+      listenerId: listenerIdRef.current,
       statePath: "*",
     });
     return () => {
+      if (switchOff) {
+        return;
+      }
       unregisterStateChangedCallback<TState>({
         containerId,
+        lateInvoke,
         listenerId: listenerIdRef.current,
         statePath: "*",
       });
