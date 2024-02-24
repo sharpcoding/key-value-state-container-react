@@ -25,7 +25,7 @@
 import { useContext } from "react";
 import { Action, dispatchAction } from "key-value-state-container";
 
-import { UseDispatchAction } from "types/contracts";
+import { UseDispatchAction } from "./types/contracts";
 import {
   ContainerRootContext,
   ContainerRootContextProps,

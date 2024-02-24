@@ -39,24 +39,26 @@ export const ContainerRoot = <TState extends Object, TAction extends Action>(
 ) => {
   const [autoContainerId] = useState<string>(getUniqueId());
   const {
+    autoActions,
+    autoState,
     children,
     config,
     containerId = autoContainerId,
-    dispatcher,
     initialState,
-    reducer,
     persistence,
+    reducer,
   } = props;
   const runningFirstTimeRef = useRef<boolean>(true);
   if (runningFirstTimeRef.current) {
     runningFirstTimeRef.current = false;
     registerStateContainer({
+      autoActions,
+      autoState,
       config,
       containerId,
-      dispatcher,
       initialState,
-      reducer,
       persistence,
+      reducer,
     });
   }
 
@@ -68,12 +70,13 @@ export const ContainerRoot = <TState extends Object, TAction extends Action>(
      */
     if (reRegister({ containerId })) {
       registerStateContainer({
+        autoActions,
+        autoState,
         config,
         containerId,
-        dispatcher,
         initialState,
-        reducer,
         persistence,
+        reducer,
       });
     }
     return () => {
