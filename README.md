@@ -67,5 +67,11 @@ as `statePath` is not including `status` attribute.
 
 - remove all `node_modules` folders manually
 - make necessary changes to `key-value-state-container` and bump the version temporarily up (e.g. `1.0.5` -> `1.0.6`)
-- run `npm run pack` to create a tgz package locally
+- run `npm run pack` in `key-value-state-container` to create a tgz package locally in `~` folder
+- change `package.json` in `key-value-state-container-react` to use the local tgz package:
+  ```js
+  "dependencies": {
+    "key-value-state-container": "file:~/key-value-state-container-1.0.0.tgz",
+  }
+  ```
 - don't forget to bump the version back to the original one (e.g. `1.0.6` -> `1.0.3`)
