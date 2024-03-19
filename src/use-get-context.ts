@@ -22,17 +22,20 @@
   SOFTWARE.
 */
 
-import React from "react";
-import { getUniqueId } from "key-value-state-container";
+import { useContext } from "react";
 
-export interface ContainerRootContextProps {
-  containerId: string;
+import {
+  ContainerRootContext,
+  ContainerRootContextProps,
+} from "./ContainerRoot/context";
+
+type Result = {
+  containerIdFromContext: string;
   registerStateContainer: () => void;
 }
 
-export const ContainerRootContext = React.createContext<
-  ContainerRootContextProps
->({
-  containerId: getUniqueId(),
-  registerStateContainer: () => { },
-});
+export const useGetContext = (): Result => {
+  const { containerId, registerStateContainer } =
+    useContext<ContainerRootContextProps>(ContainerRootContext);
+  return { containerIdFromContext: containerId, registerStateContainer };
+};

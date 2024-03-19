@@ -26,13 +26,12 @@ import React, { PropsWithChildren, useEffect, useRef, useState } from "react";
 import {
   Action,
   getUniqueId,
-  registerStateContainer,
+  registerStateContainer as libRegisterStateContainer,
   unregisterStateContainer,
 } from "key-value-state-container";
 
 import { ContainerRootContext } from "./context";
 import { ContainerRootProps } from "./props";
-import { reRegister } from "./re-register";
 
 export const ContainerRoot = <TState extends Object, TAction extends Action>(
   props: PropsWithChildren<ContainerRootProps<TState, TAction>>
@@ -48,10 +47,9 @@ export const ContainerRoot = <TState extends Object, TAction extends Action>(
     persistence,
     reducer,
   } = props;
-  const runningFirstTimeRef = useRef<boolean>(true);
-  if (runningFirstTimeRef.current) {
-    runningFirstTimeRef.current = false;
-    registerStateContainer({
+
+  const registerStateContainer = () => {
+    libRegisterStateContainer({
       autoActions,
       autoState,
       config,
@@ -60,29 +58,43 @@ export const ContainerRoot = <TState extends Object, TAction extends Action>(
       persistence,
       reducer,
     });
+  };
+
+  const runningFirstTimeRef = useRef<boolean>(true);
+  if (runningFirstTimeRef.current) {
+    runningFirstTimeRef.current = false;
+    /**
+     * We need to register the container here, with the first render. 
+     * 
+     * Assuming the `console.log()` invocations are printed out for 
+     * mount/unmount component lifecycle events (by `useEffect()`),
+     * the printout for React 18 Strict Mode would look as follows:
+     *
+     * useSelector mounted ⭐️
+     * ContainerRoot mounted ⭐️⭐️
+     * useSelector unmounted
+     * ContainerRoot unmounted
+     * useSelector mounted ⭐️⭐️⭐️
+     * ContainerRoot mounted
+     * 
+     * Please note is is way too late to register the container in the ⭐️⭐️
+     * (as there was a `useSelector` call in ⭐️, that wanted to register 
+     * callback listeners with an unregistered container!)
+     *
+     * The same story goes with `useSelector`, marked by ⭐️⭐️⭐️,
+     * that needs a container to be registered.
+     * 
+     * Keep in mind the biggest possible memory issues for a container 
+     * are the callback listeners mentioned above, 
+     * as these can easily allocate GBs of memory
+     * (btw. this problem is handled by the `useSelector` code)
+     */
+    registerStateContainer();
   }
 
   useEffect(() => {
-    /**
-     * Checking for unregistered container
-     * Container might be unregistered due to `useEffect` return function
-     * called twice in React 18 Strict Mode
-     */
-    if (reRegister({ containerId })) {
-      registerStateContainer({
-        autoActions,
-        autoState,
-        config,
-        containerId,
-        initialState,
-        persistence,
-        reducer,
-      });
-    }
     return () => {
-      unregisterStateContainer({
-        containerId,
-      });
+      unregisterStateContainer({ containerId });
     };
   }, []);
 
@@ -90,6 +102,7 @@ export const ContainerRoot = <TState extends Object, TAction extends Action>(
     <ContainerRootContext.Provider
       value={{
         containerId,
+        registerStateContainer,
       }}
     >
       {children}
