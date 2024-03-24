@@ -1,6 +1,6 @@
 {
   "name": "key-value-state-container-react",
-  "version": "1.0.20240316-1430",
+  "version": "1.0.0",
   "date": "2023-Dec-10 10:10",
   "description": "React bindings for key-value-state-container",
   "main": "dist/index.js",
@@ -33,7 +33,7 @@
   },
   "homepage": "https://github.com/WealthArc/key-value-state-container#readme",
   "dependencies": {
-    "key-value-state-container": "file:~/key-value-state-container-1.0.20240316-1245.tgz",
+    "key-value-state-container": "~1.0.0",
     "lodash": "^4.17.4",
     "react": "^18.2.0"
   },
