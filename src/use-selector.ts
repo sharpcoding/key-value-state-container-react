@@ -149,9 +149,7 @@ export const useSelector = <
   }, [setCurrentState]);
 
   useEffect(() => {
-    console.log("useSelector mounted");
     return () => {
-      console.log("useSelector unmounted");
       /**
        * component gets unmounted
        */
