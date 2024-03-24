@@ -4,7 +4,10 @@ import React from "react";
 import { render, act } from "@testing-library/react";
 import { finishedProcessingQueue } from "key-value-state-container";
 
-import { reducer, dispatchActions } from "./state-container/enhanced-logic";
+import {
+  reducer,
+  dispatchActions,
+} from "./state-container/increment-decrement-container-logic";
 import { RendersWithListeningToPath, SumComponent } from "./SumComponent";
 import { ContainerRoot } from "../ContainerRoot";
 
@@ -27,6 +30,7 @@ const useSelectorTest = async ({ path }: RendersWithListeningToPath) => {
     await finishedProcessingQueue({ containerId });
   });
   expect(getByTestId("sum").innerHTML).toEqual(`The sum is: ${expectedSum}`);
+  expect(getByTestId("rendered").innerHTML).toEqual("Rendered: 2");
   act(() => {
     unmount();
   });
