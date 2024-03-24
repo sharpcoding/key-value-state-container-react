@@ -1,7 +1,10 @@
 import React from "react";
 import { useSelector } from "../use-selector";
 import { RendersWithContainerId } from "../types/contracts";
-import { Action, State } from "./state-container/enhanced-logic";
+import {
+  Action,
+  State,
+} from "./state-container/increment-decrement-container-logic";
 
 export interface RendersWithListeningToPath {
   path: keyof State | "*";
@@ -16,5 +19,10 @@ export const SumComponent = ({ containerId, path }: Props) => {
     statePath: [path],
   });
   renderedRef.current = renderedRef.current + 1;
-  return <div data-testid="sum">The sum is: {sum}</div>;
+  return (
+    <div>
+      <div data-testid="sum">The sum is: {sum}</div>
+      <div data-testid="rendered">Rendered: {renderedRef.current}</div>
+    </div>
+  );
 };

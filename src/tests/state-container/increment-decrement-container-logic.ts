@@ -1,7 +1,4 @@
 
-/**
- * The enhanced logic adds a special action `zero` that bypasses the reducer.
- */
 import { dispatchAction, Reducer } from "key-value-state-container";
 
 export type Action =
@@ -26,6 +23,7 @@ export type Action =
 
 export type State = {
   sum: number;
+  
   /**
    * How many times the `increment` action has been dispatched.
    */
