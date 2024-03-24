@@ -2,14 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import {
   Action,
   ClientNotificationCallbackArgs,
+  containerRegistered,
   getContainer,
   getUniqueId,
   registerStateChangedCallback,
   TKnownStatePath,
   unregisterStateChangedCallback,
 } from "key-value-state-container";
-import { useGetContainerId } from "./use-get-container-id";
 import { RendersWithContainerId } from "./types/contracts";
+import { useGetContext } from "./use-get-context";
 
 interface Args<TState extends Object, TAction extends Action = Action>
   extends Partial<RendersWithContainerId> {
@@ -67,8 +68,8 @@ export const useSelector = <
     `${listenerTag ? `${listenerTag}:` : ""}${getUniqueId()}`
   );
   const unmountedRef = useRef<boolean>(false);
-  const containerFromHook = useGetContainerId();
-  const containerId = containerIdFromProps || containerFromHook;
+  const { containerIdFromContext, registerStateContainer } = useGetContext();
+  const containerId = containerIdFromProps || containerIdFromContext;
   const initialState =
     getContainer<TState>({
       containerId,
@@ -78,14 +79,23 @@ export const useSelector = <
   const lateInvoke =
     typeof lateInvokeFromProps === "boolean" ? lateInvokeFromProps : true;
   const [currentState, setCurrentState] = useState(initialState);
+
   useEffect(() => {
-    return () => {
-      unmountedRef.current = true;
-    };
+    /**
+     * Component gets mounted
+     */
+    unmountedRef.current = false;
   }, []);
+
   useEffect(() => {
     if (switchOff) {
       return;
+    }
+    /**
+     * Awkward, but necessary logic, explained in ContextRoot.tsx component.
+     */
+    if (!containerRegistered({ containerId })) {
+      registerStateContainer();
     }
     const statePaths =
       typeof statePath === "string"
@@ -137,6 +147,15 @@ export const useSelector = <
       });
     };
   }, [setCurrentState]);
+
+  useEffect(() => {
+    return () => {
+      /**
+       * component gets unmounted
+       */
+      unmountedRef.current = true;
+    };
+  }, []);
 
   return currentState;
 };
